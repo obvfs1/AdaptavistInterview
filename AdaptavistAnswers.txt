@@ -2,13 +2,26 @@
 
 import com.atlassian.jira.component.ComponentAccessor
 
+//checking to see if the fields are not null
 if(getCustomFieldValue("Estimated_Time") && getCustomFieldValue("Time_Elapsed")){
 	def estimatedTime = getCustomFieldValue("Estimated_Time")
 	def timeElapsed = getCustomFieldValue("Time_Elapsed")
-
+	
 	return estimatedTime - timeElapsed
 }
 
+/*
+//def estimatedTime =  ComponentAccessor.getCustomFieldManager().getCustomField("customfield_10113")
+def estimatedTime = ComponentAccessor.getCustomFieldManager().getCustomFieldValue("Estimated_Time") as Double
+def customfieldvalueCFVal = issue.getCustomFieldValue(customfieldnameCF) as Double
+
+def timeElapsed =  ComponentAccessor.getCustomFieldManager().getCustomFieldObject("customfield_10114")
+
+def timeRemaining
+
+def currentIssue = ComponentAccessor.issueManager.getIssueByCurrentKey("ADIOLLYVFS-24")
+
+return estimatedTime*/
 
 
 ////////////////Task 1.1 - Scripted field that can count the number of sub-tasks in an issue
@@ -16,13 +29,15 @@ if(getCustomFieldValue("Estimated_Time") && getCustomFieldValue("Time_Elapsed"))
 import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.config.SubTaskManager
 
+//subTaskManager has a method to put all issue sub-task objects into a Collection
 SubTaskManager subTaskManager = ComponentAccessor.getSubTaskManager()
 Collection subTasks = issue.getSubTaskObjects()
 
 def sum = 0
 
+//iterate through every object in the subTask
 for (currentIssue in subTasks)
-	// if(currentIssue.getIssueType().name != null)
+	// if(currentIssue.getIssueType().name != null) <- I realised this wasn't needed!
 		sum++
             
 return sum
@@ -36,23 +51,28 @@ import com.atlassian.jira.issue.MutableIssue
 import com.atlassian.jira.issue.IssueManager
 import com.atlassian.jira.event.type.EventDispatchOption
 
+//Issue identification
 Issue issue = event.getIssue()
 IssueManager issueManager = ComponentAccessor.getIssueManager()
+//create a MutableIssue so that we can alter some of the Issue fields
 MutableIssue mutableIssue = issueManager.getIssueObject(issue.getKey()) 
 
+//retrieve the latest comment on the current issue
 def commentManager = ComponentAccessor.commentManager
 def lastComment = commentManager.getLastComment(issue)
+//user has to be defined for updating the issue
 def user = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser()
 
 /*log.warn( lastComment.getBody())
 log.warn( issue.getKey())*/
+
+//if the comment is not null
 if(lastComment){
+    //update and set the mutableIssue to the issue currently being referenced
 	mutableIssue.setDescription(lastComment.getBody())
 	ComponentAccessor.getIssueManager().updateIssue(user, mutableIssue, EventDispatchOption.ISSUE_UPDATED, false)
         
 }
-
-
 
 
 /* 1.2 EMAIL RESPONSE 
