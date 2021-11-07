@@ -1,0 +1,78 @@
+////////////////Task 1.1 - Scripted field that calculates a value based on issue fields
+
+import com.atlassian.jira.component.ComponentAccessor
+
+if(getCustomFieldValue("Estimated_Time") && getCustomFieldValue("Time_Elapsed")){
+	def estimatedTime = getCustomFieldValue("Estimated_Time")
+	def timeElapsed = getCustomFieldValue("Time_Elapsed")
+
+	return estimatedTime - timeElapsed
+}
+
+
+
+////////////////Task 1.1 - Scripted field that can count the number of sub-tasks in an issue
+
+import com.atlassian.jira.component.ComponentAccessor
+import com.atlassian.jira.config.SubTaskManager
+
+SubTaskManager subTaskManager = ComponentAccessor.getSubTaskManager()
+Collection subTasks = issue.getSubTaskObjects()
+
+def sum = 0
+
+for (currentIssue in subTasks)
+	// if(currentIssue.getIssueType().name != null)
+		sum++
+            
+return sum
+
+
+////////////////Task 1.1 - Custom listener script that updates the issue description with the issue’s last comment
+
+import com.atlassian.jira.component.ComponentAccessor 
+import com.atlassian.jira.issue.Issue
+import com.atlassian.jira.issue.MutableIssue
+import com.atlassian.jira.issue.IssueManager
+import com.atlassian.jira.event.type.EventDispatchOption
+
+Issue issue = event.getIssue()
+IssueManager issueManager = ComponentAccessor.getIssueManager()
+MutableIssue mutableIssue = issueManager.getIssueObject(issue.getKey()) 
+
+def commentManager = ComponentAccessor.commentManager
+def lastComment = commentManager.getLastComment(issue)
+def user = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser()
+
+/*log.warn( lastComment.getBody())
+log.warn( issue.getKey())*/
+if(lastComment){
+	mutableIssue.setDescription(lastComment.getBody())
+	ComponentAccessor.getIssueManager().updateIssue(user, mutableIssue, EventDispatchOption.ISSUE_UPDATED, false)
+        
+}
+
+
+
+
+/* 1.2 EMAIL RESPONSE 
+
+
+
+Hi Suhanisa,
+Thanks for reaching out to Adaptavist support, this is certainly something we can help with. We've recently migrated our documentation to https://docs.adaptavist.com/sr4js/latest  
+
+Regarding your query, I would create a built-in Scripted field which utilizes “Issue Picker”: https://docs.adaptavist.com/sr4js/latest/features/script-fields/built-in-script-fields/issue-picker .
+This type of custom Scripted Field allows you to add a custom JQL query, to search and refine the Jira Issues you are looking for, as well as a Groovy script if required.
+I would also check out our documentation on JQL functions, which have been migrated to https://docs.adaptavist.com/sr4js/latest/features/jql-functions . 
+
+We would be more than happy to assist you in writing a script, please may you provide more information for your request? 
+For example, what types of Jira Issue fields are you trying to search by? Are there limitations on these fields? Such as having a certain comment on the Issue
+Please don’t hesitate to reach out to us if you have any further questions!
+Thanks,
+Olly
+
+
+
+*/
+
